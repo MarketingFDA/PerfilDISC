@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Mapeamento de Perfil Comportamental DISC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --ink:#0a1628;
+  --ink2:#1c3a63;
+  --blue1:#0a1e3d;
+  --blue2:#123a73;
+  --blue3:#1e56a8;
+  --blue4:#2f72d8;
+  --blue5:#5b9bf0;
+  --blue6:#a9cdfb;
+  --glass-bg:rgba(255,255,255,.55);
+  --glass-bg2:rgba(255,255,255,.72);
+  --glass-border:rgba(255,255,255,.7);
+  --glass-shadow:0 8px 32px rgba(10,30,60,.12),0 1px 2px rgba(10,30,60,.06);
+  --text:#0a1628;
+  --text2:#4a5a72;
+  --text3:#8694a8;
+  --radius:28px;
+  --radius-sm:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:#eef3fb;
+  color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ===== LIQUID GLASS BACKGROUND ===== */
+#bg-layer{position:fixed;inset:0;z-index:0;overflow:hidden;background:linear-gradient(180deg,#f5f8fd 0%,#eaf0fa 50%,#e3ebf8 100%);}
+.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;animation:float 22s ease-in-out infinite;}
+.blob1{width:520px;height:520px;background:radial-gradient(circle at 30% 30%,var(--blue4),var(--blue1));top:-12%;left:-10%;animation-duration:26s;}
+.blob2{width:460px;height:460px;background:radial-gradient(circle at 60% 40%,var(--blue5),var(--blue2));bottom:-15%;right:-8%;animation-duration:30s;animation-delay:-6s;}
+.blob3{width:340px;height:340px;background:radial-gradient(circle at 50% 50%,var(--blue6),var(--blue3));top:40%;right:15%;animation-duration:20s;animation-delay:-10s;opacity:.35;}
+.blob4{width:300px;height:300px;background:radial-gradient(circle at 50% 50%,var(--blue4),var(--blue2));bottom:10%;left:10%;animation-duration:24s;animation-delay:-3s;opacity:.3;}
+@keyframes float{
+  0%,100%{transform:translate(0,0) scale(1);}
+  33%{transform:translate(30px,-40px) scale(1.06);}
+  66%{transform:translate(-25px,25px) scale(.96);}
+}
+.grain{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* ===== LAYOUT ===== */
+#app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.2rem 1.2rem;}
+
+/* ===== GLASS CARD ===== */
+.glass{
+  background:var(--glass-bg);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow);
+  position:relative;
+  overflow:hidden;
+}
+.glass::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 35%);
+  mix-blend-mode:overlay;
+}
+.glass::after{
+  content:'';position:absolute;top:0;left:8%;right:8%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);
+}
+
+/* ===== SCREENS ===== */
+.screen{width:100%;max-width:680px;display:none;animation:screenIn .55s cubic-bezier(.16,1,.3,1) both;}
+.screen.active{display:block;}
+@keyframes screenIn{from{opacity:0;transform:translateY(18px) scale(.985);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+/* ===== BRAND ===== */
+.brand{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:1.6rem;}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--blue4),var(--blue2));box-shadow:0 0 0 5px rgba(47,114,216,.12);}
+.brand-text{font-size:.82rem;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--blue2);}
+
+/* ===== INTRO ===== */
+.intro-card{padding:3rem 2.6rem;text-align:center;}
+.intro-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(47,114,216,.1);border:1px solid rgba(47,114,216,.22);color:var(--blue2);padding:6px 16px;border-radius:50px;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:1.6rem;}
+h1.title{font-size:clamp(1.7rem,4.4vw,2.5rem);font-weight:800;line-height:1.18;margin-bottom:1rem;letter-spacing:-.02em;}
+h1.title em{font-style:normal;background:linear-gradient(135deg,var(--blue2),var(--blue4) 60%,var(--blue5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.lead{color:var(--text2);font-size:1rem;line-height:1.7;max-width:520px;margin:0 auto 1.8rem;}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin:1.8rem 0;}
+.info-pill{background:var(--glass-bg2);border:1px solid rgba(255,255,255,.8);border-radius:var(--radius-sm);padding:1.1rem .8rem;}
+.info-pill .ico{font-size:1.4rem;margin-bottom:.4rem;}
+.info-pill .lbl{font-size:.72rem;color:var(--text3);font-weight:600;line-height:1.4;}
+.info-pill .val{font-size:.95rem;font-weight:800;color:var(--ink);}
+.note-box{text-align:left;background:rgba(47,114,216,.06);border:1px solid rgba(47,114,216,.16);border-radius:var(--radius-sm);padding:1.1rem 1.3rem;margin-top:1.6rem;font-size:.85rem;color:var(--ink2);line-height:1.65;}
+.note-box strong{color:var(--blue2);}
+
+/* ===== BUTTONS ===== */
+.btn{
+  appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:.95rem;
+  border-radius:50px;padding:15px 32px;transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-primary{background:linear-gradient(135deg,var(--blue3),var(--blue1));color:#fff;box-shadow:0 10px 30px rgba(10,40,90,.32),inset 0 1px 0 rgba(255,255,255,.25);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(10,40,90,.4),inset 0 1px 0 rgba(255,255,255,.3);}
+.btn-primary:active{transform:translateY(0) scale(.98);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-ghost{background:rgba(10,30,60,.05);color:var(--ink2);border:1px solid rgba(10,30,60,.1);}
+.btn-ghost:hover{background:rgba(10,30,60,.09);}
+.btn-block{width:100%;}
+.btn-row{display:flex;gap:.8rem;margin-top:1rem;}
+.btn-row .btn{flex:1;}
+
+/* ===== FORM ===== */
+.form-card{padding:2.6rem 2.4rem;}
+.form-head{margin-bottom:1.8rem;}
+.form-head h2{font-size:1.5rem;font-weight:800;margin-bottom:.4rem;letter-spacing:-.01em;}
+.form-head p{color:var(--text2);font-size:.9rem;}
+.field{margin-bottom:1.3rem;}
+.field label{display:block;font-size:.78rem;font-weight:700;color:var(--ink2);margin-bottom:.5rem;letter-spacing:.2px;}
+.field input{
+  width:100%;padding:14px 18px;border-radius:16px;border:1.5px solid rgba(10,30,60,.12);
+  background:rgba(255,255,255,.65);font-family:inherit;font-size:.95rem;color:var(--ink);
+  outline:none;transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.field input::placeholder{color:var(--text3);}
+.field input:focus{border-color:var(--blue4);box-shadow:0 0 0 4px rgba(47,114,216,.14);background:rgba(255,255,255,.85);}
+.field input.invalid{border-color:#dc4444;box-shadow:0 0 0 4px rgba(220,68,68,.1);}
+.field .err{font-size:.74rem;color:#dc4444;margin-top:.4rem;display:none;}
+.field .err.show{display:block;}
+.privacy-note{font-size:.76rem;color:var(--text3);line-height:1.6;margin-top:1.4rem;display:flex;gap:.5rem;align-items:flex-start;}
+
+/* ===== QUIZ ===== */
+.quiz-wrap{padding:2.4rem 2.2rem 2.2rem;}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.3rem;}
+.quiz-counter{font-size:.78rem;font-weight:700;color:var(--blue2);letter-spacing:.3px;}
+.quiz-pct{font-size:.78rem;font-weight:700;color:var(--text3);}
+.progress-track{height:8px;border-radius:10px;background:rgba(10,30,60,.08);overflow:hidden;margin-bottom:2rem;}
+.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--blue3),var(--blue5));width:0%;transition:width .45s cubic-bezier(.16,1,.3,1);box-shadow:0 0 10px rgba(47,114,216,.5);}
+.q-wrap{min-height:170px;display:flex;flex-direction:column;justify-content:center;}
+.q-text{font-size:1.32rem;font-weight:700;line-height:1.45;letter-spacing:-.01em;margin-bottom:2rem;color:var(--ink);animation:qIn .4s cubic-bezier(.16,1,.3,1) both;}
+@keyframes qIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem;animation:qIn .45s .05s cubic-bezier(.16,1,.3,1) both;}
+.scale-opt{
+  background:rgba(255,255,255,.55);border:1.5px solid rgba(10,30,60,.1);border-radius:18px;
+  padding:1rem .5rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;cursor:pointer;
+  transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease;
+  text-align:center;
+}
+.scale-opt:hover{transform:translateY(-2px);border-color:rgba(47,114,216,.35);background:rgba(255,255,255,.75);}
+.scale-opt .dot{width:22px;height:22px;border-radius:50%;border:2px solid rgba(10,30,60,.18);transition:.15s;}
+.scale-opt .lbl{font-size:.72rem;font-weight:700;color:var(--text2);}
+.scale-opt.sel{border-color:var(--blue4);background:linear-gradient(180deg,rgba(47,114,216,.14),rgba(47,114,216,.06));box-shadow:0 8px 22px rgba(47,114,216,.22);transform:translateY(-2px);}
+.scale-opt.sel .dot{background:linear-gradient(135deg,var(--blue3),var(--blue1));border-color:transparent;box-shadow:0 0 0 4px rgba(47,114,216,.18);}
+.scale-opt.sel .lbl{color:var(--blue1);}
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:2.2rem;}
+.quiz-hint{font-size:.78rem;color:var(--text3);text-align:center;margin-top:1.1rem;}
+
+/* ===== SUBMIT / THANKS ===== */
+.center-card{padding:3.4rem 2.6rem;text-align:center;}
+.spinner-ring{width:64px;height:64px;border-radius:50%;border:4px solid rgba(47,114,216,.15);border-top-color:var(--blue4);margin:0 auto 1.6rem;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.check-wrap{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--blue3),var(--blue1));display:flex;align-items:center;justify-content:center;margin:0 auto 1.6rem;box-shadow:0 12px 32px rgba(10,40,90,.3);animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes popIn{from{opacity:0;transform:scale(.5);}to{opacity:1;transform:scale(1);}}
+.check-wrap svg{width:34px;height:34px;}
+
+/* ===== MOBILE ===== */
+@media(max-width:560px){
+  .intro-card,.form-card,.quiz-wrap,.center-card{padding:2rem 1.4rem;}
+  .info-grid{grid-template-columns:1fr 1fr;}
+  .scale{grid-template-columns:repeat(5,1fr);gap:.35rem;}
+  .scale-opt{padding:.7rem .2rem;}
+  .scale-opt .lbl{font-size:.62rem;}
+  .q-text{font-size:1.1rem;}
+}
+</style>
+</head>
+<body>
+
+<div id="bg-layer">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+  <div class="blob blob4"></div>
+  <div class="grain"></div>
+</div>
+
+<div id="app">
+
+  <!-- ===================== SCREEN: INTRO ===================== -->
+  <section class="screen active" id="screen-intro">
+    <div class="glass intro-card">
+      <div class="brand"><div class="brand-dot"></div><span class="brand-text">Fradema · Recursos Humanos</span></div>
+      <div class="intro-badge">🧭&nbsp; Mapeamento Comportamental</div>
+      <h1 class="title">Teste de Perfil<br><em>Comportamental DISC</em></h1>
+      <p class="lead">É uma metodologia de avaliação comportamental cuja finalidade é identificar os perfis dominantes de uma pessoa, entre quatro estilos: <strong>Dominância</strong>, <strong>Influência</strong>, <strong>Estabilidade</strong> e <strong>Conformidade</strong>.</p>
+      <p class="lead" style="margin-top:-1.2rem">Não existe certo ou errado. Não existe perfil melhor ou pior — apenas formas diferentes de agir e se comunicar.</p>
+
+      <div class="info-grid">
+        <div class="info-pill"><div class="ico">⏱️</div><div class="lbl">Duração</div><div class="val">~10 min</div></div>
+        <div class="info-pill"><div class="ico">📝</div><div class="lbl">Perguntas</div><div class="val">36</div></div>
+        <div class="info-pill"><div class="ico">🎯</div><div class="lbl">Resposta</div><div class="val">Intuitiva</div></div>
+      </div>
+
+      <div class="note-box">
+        💡 <strong>Como responder:</strong> reserve alguns minutos sem interrupções. Responda de forma intuitiva e individual, de acordo com o que mais se aproxima da sua forma natural de agir — não pense demais em cada resposta.
+      </div>
+
+      <button class="btn btn-primary btn-block" style="margin-top:2rem" id="btn-start">Iniciar Teste →</button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: DADOS PESSOAIS ===================== -->
+  <section class="screen" id="screen-form">
+    <div class="glass form-card">
+      <div class="brand"><div class="brand-dot"></div><span class="brand-text">Fradema · Recursos Humanos</span></div>
+      <div class="form-head">
+        <h2>Antes de começar</h2>
+        <p>Precisamos confirmar sua identificação para vincular ao seu processo seletivo.</p>
+      </div>
+
+      <div class="field">
+        <label for="f-nome">Nome completo</label>
+        <input type="text" id="f-nome" placeholder="Digite seu nome completo" autocomplete="name">
+        <div class="err" id="err-nome">Informe seu nome completo.</div>
+      </div>
+      <div class="field">
+        <label for="f-cpf">CPF</label>
+        <input type="text" id="f-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+        <div class="err" id="err-cpf">Informe um CPF válido.</div>
+      </div>
+      <div class="field">
+        <label for="f-nasc">Data de nascimento</label>
+        <input type="date" id="f-nasc">
+        <div class="err" id="err-nasc">Informe sua data de nascimento.</div>
+      </div>
+
+      <div class="privacy-note">🔒 Seus dados serão usados exclusivamente para fins de avaliação do processo seletivo Fradema.</div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btn-back-intro">Voltar</button>
+        <button class="btn btn-primary" id="btn-start-quiz">Começar perguntas →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: QUIZ ===================== -->
+  <section class="screen" id="screen-quiz">
+    <div class="glass quiz-wrap">
+      <div class="quiz-top">
+        <span class="quiz-counter" id="q-counter">Pergunta 1 de 36</span>
+        <span class="quiz-pct" id="q-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+      <div class="q-wrap">
+        <div class="q-text" id="q-text">—</div>
+        <div class="scale" id="q-scale">
+          <div class="scale-opt" data-v="0"><div class="dot"></div><div class="lbl">Não</div></div>
+          <div class="scale-opt" data-v="1"><div class="dot"></div><div class="lbl">Pouco</div></div>
+          <div class="scale-opt" data-v="2"><div class="dot"></div><div class="lbl">Neutro</div></div>
+          <div class="scale-opt" data-v="3"><div class="dot"></div><div class="lbl">Muito</div></div>
+          <div class="scale-opt" data-v="4"><div class="dot"></div><div class="lbl">Sim</div></div>
+        </div>
+      </div>
+
+      <div class="quiz-nav">
+        <button class="btn btn-ghost" id="btn-prev">← Anterior</button>
+        <button class="btn btn-primary" id="btn-next" disabled>Próxima →</button>
+      </div>
+      <div class="quiz-hint" id="quiz-hint">Escolha a opção que mais combina com você</div>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: ENVIANDO ===================== -->
+  <section class="screen" id="screen-sending">
+    <div class="glass center-card">
+      <div class="spinner-ring"></div>
+      <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:.5rem">Processando suas respostas…</h2>
+      <p style="color:var(--text2);font-size:.92rem">Isso leva só alguns segundos.</p>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: OBRIGADO ===================== -->
+  <section class="screen" id="screen-thanks">
+    <div class="glass center-card">
+      <div class="check-wrap">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:.7rem;letter-spacing:-.01em">Teste concluído!</h2>
+      <p style="color:var(--text2);font-size:.95rem;line-height:1.7;max-width:420px;margin:0 auto">Obrigado por completar o Teste de Perfil Comportamental DISC. Suas respostas foram registradas com sucesso e enviadas para a nossa equipe de Recrutamento.</p>
+      <p style="color:var(--text3);font-size:.85rem;margin-top:1.2rem">Em breve entraremos em contato sobre os próximos passos do seu processo seletivo.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   DADOS DAS 36 QUESTOES
+   reversed: pontuacao invertida (4 - resposta) antes de somar
+   validates: questoes-base usadas para checar consistencia
+   cross: indica par de fatores em questoes de consistencia cruzada
+============================================================ */
+const QUESTIONS = [
+  {id:1,  text:"Gosto de assumir a liderança quando percebo que uma decisão precisa ser tomada.", ind:"D"},
+  {id:2,  text:"Sinto-me confortável conversando com pessoas que acabei de conhecer.", ind:"I"},
+  {id:3,  text:"Prefiro ambientes de trabalho previsíveis e organizados.", ind:"S"},
+  {id:4,  text:"Antes de concluir uma tarefa, reviso cuidadosamente os detalhes.", ind:"C"},
+  {id:5,  text:"Quando surge um problema, procuro resolvê-lo rapidamente.", ind:"D"},
+  {id:6,  text:"Gosto de motivar e influenciar outras pessoas.", ind:"I"},
+  {id:7,  text:"Sou paciente ao lidar com situações demoradas.", ind:"S"},
+  {id:8,  text:"Costumo seguir procedimentos e normas estabelecidas.", ind:"C"},
+  {id:9,  text:"Aceito desafios mesmo quando envolvem riscos.", ind:"D"},
+  {id:10, text:"Tenho facilidade para criar relacionamentos profissionais.", ind:"I"},
+  {id:11, text:"Procuro manter um ambiente harmonioso entre as pessoas.", ind:"S"},
+  {id:12, text:"Valorizo precisão e qualidade acima da velocidade.", ind:"C"},
+  {id:13, text:"Sinto-me motivado ao competir por melhores resultados.", ind:"D"},
+  {id:14, text:"Gosto de apresentar ideias para grupos ou equipes.", ind:"I"},
+  {id:15, text:"Prefiro colaborar do que competir.", ind:"S"},
+  {id:16, text:"Costumo analisar informações antes de tomar decisões.", ind:"C"},
+  {id:17, text:"Quando necessário, confronto problemas diretamente.", ind:"D"},
+  {id:18, text:"Sou reconhecido por meu entusiasmo e energia.", ind:"I"},
+  {id:19, text:"Mudanças muito frequentes me deixam desconfortável.", ind:"S"},
+  {id:20, text:"Gosto de trabalhar com dados, números e informações detalhadas.", ind:"C"},
+  {id:21, text:"Tenho facilidade para tomar decisões sob pressão.", ind:"D"},
+  {id:22, text:"Gosto de estar em contato constante com outras pessoas.", ind:"I"},
+  {id:23, text:"As pessoas costumam me procurar para pedir apoio ou orientação.", ind:"S"},
+  {id:24, text:"Fico incomodado quando percebo erros ou inconsistências.", ind:"C"},
+  {id:25, text:"Busco constantemente superar metas e resultados.", ind:"D"},
+  {id:26, text:"Costumo ser comunicativo durante reuniões.", ind:"I"},
+  {id:27, text:"Sou persistente e mantenho o ritmo mesmo em tarefas repetitivas.", ind:"S"},
+  {id:28, text:"Organizo minhas atividades antes de executá-las.", ind:"C"},
+  {id:29, text:"Prefiro agir rapidamente do que esperar todas as informações disponíveis.", ind:"D"},
+  {id:30, text:"Gosto de participar de eventos, reuniões e interações sociais.", ind:"I"},
+  {id:31, text:"Costumo evitar assumir o controle de situações difíceis.", ind:"D", reversed:true, validates:[1,5,17,21]},
+  {id:32, text:"Prefiro permanecer em segundo plano em vez de interagir com muitas pessoas.", ind:"I", reversed:true, validates:[2,10,14,22]},
+  {id:33, text:"Mudanças frequentes me deixam confortável e motivado.", ind:"S", reversed:true, validates:[3,19,27]},
+  {id:34, text:"Raramente reviso meu trabalho antes de entregá-lo.", ind:"C", reversed:true, validates:[4,12,20,24]},
+  {id:35, text:"Tomo decisões importantes apenas após analisar cuidadosamente todas as informações.", ind:"DC", cross:"DC"},
+  {id:36, text:"Em reuniões, normalmente prefiro ouvir do que falar.", ind:"IS", cross:"IS"},
+];
+const SCALE_LABELS = ["Não","Pouco","Neutro","Muito","Sim"];
+
+const PROFILES = {
+  D:{nome:"Dominância", apelido:"Executor", emoji:"🔥",
+     caracteristicas:["Foco em resultados","Competitivo","Corajoso","Assume desafios","Assertivo","Tomador de decisão","Busca autonomia"],
+     atencao:["Impaciência","Impulsividade","Excesso de controle"]},
+  I:{nome:"Influência", apelido:"Comunicador", emoji:"✨",
+     caracteristicas:["Comunicativo","Persuasivo","Entusiasmado","Relacional","Sociável","Influenciador","Motivador"],
+     atencao:["Distração","Dificuldade com rotina","Excesso de informalidade"]},
+  S:{nome:"Estabilidade", apelido:"Planejador", emoji:"🌿",
+     caracteristicas:["Calmo","Paciente","Organizado","Colaborativo","Leal","Constante","Acolhedor"],
+     atencao:["Resistência à mudança","Evita conflitos","Passividade em decisões difíceis"]},
+  C:{nome:"Conformidade", apelido:"Analista", emoji:"🔎",
+     caracteristicas:["Analítico","Detalhista","Organizado","Estruturado","Metódico","Preciso","Focado em qualidade"],
+     atencao:["Perfeccionismo","Rigidez","Excesso de análise"]},
+};
+
+// chaves em ordem alfabetica, pois o lookup usa [primary,secondary].sort().join(',')
+const COMBOS = {
+  "D,I":"Líder Persuasivo", "D,S":"Líder Estável", "C,D":"Executor Estratégico",
+  "I,S":"Relacionador", "C,I":"Comunicador Técnico", "C,S":"Especialista Organizado",
+};
+
+/* ============================================================
+   ESTADO
+============================================================ */
+let current = 0;
+const answers = {}; // {questionId: 0..4}
+let candidate = {nome:"", cpf:"", nascimento:""};
+
+const screens = {
+  intro: document.getElementById('screen-intro'),
+  form: document.getElementById('screen-form'),
+  quiz: document.getElementById('screen-quiz'),
+  sending: document.getElementById('screen-sending'),
+  thanks: document.getElementById('screen-thanks'),
+};
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.remove('active'));
+  screens[name].classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ===== INTRO -> FORM ===== */
+document.getElementById('btn-start').addEventListener('click', ()=>showScreen('form'));
+document.getElementById('btn-back-intro').addEventListener('click', ()=>showScreen('intro'));
+
+/* ===== CPF MASK ===== */
+const cpfInput = document.getElementById('f-cpf');
+cpfInput.addEventListener('input', ()=>{
+  let v = cpfInput.value.replace(/\D/g,'').slice(0,11);
+  v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  cpfInput.value = v;
+});
+function isValidCPF(cpf){
+  cpf = cpf.replace(/\D/g,'');
+  if(cpf.length!==11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let sum=0;
+  for(let i=0;i<9;i++) sum += parseInt(cpf[i])*(10-i);
+  let d1 = (sum*10)%11; if(d1===10) d1=0;
+  if(d1!==parseInt(cpf[9])) return false;
+  sum=0;
+  for(let i=0;i<10;i++) sum += parseInt(cpf[i])*(11-i);
+  let d2 = (sum*10)%11; if(d2===10) d2=0;
+  return d2===parseInt(cpf[10]);
+}
+
+/* ===== FORM -> QUIZ ===== */
+document.getElementById('btn-start-quiz').addEventListener('click', ()=>{
+  const nome = document.getElementById('f-nome').value.trim();
+  const cpf = document.getElementById('f-cpf').value.trim();
+  const nasc = document.getElementById('f-nasc').value;
+  let ok = true;
+
+  document.getElementById('err-nome').classList.remove('show');
+  document.getElementById('err-cpf').classList.remove('show');
+  document.getElementById('err-nasc').classList.remove('show');
+  document.getElementById('f-nome').classList.remove('invalid');
+  document.getElementById('f-cpf').classList.remove('invalid');
+  document.getElementById('f-nasc').classList.remove('invalid');
+
+  if(nome.length < 5 || !nome.includes(' ')){
+    document.getElementById('err-nome').classList.add('show');
+    document.getElementById('f-nome').classList.add('invalid');
+    ok = false;
+  }
+  if(!isValidCPF(cpf)){
+    document.getElementById('err-cpf').classList.add('show');
+    document.getElementById('f-cpf').classList.add('invalid');
+    ok = false;
+  }
+  if(!nasc){
+    document.getElementById('err-nasc').classList.add('show');
+    document.getElementById('f-nasc').classList.add('invalid');
+    ok = false;
+  }
+  if(!ok) return;
+
+  candidate = {nome, cpf, nascimento: nasc};
+  showScreen('quiz');
+  renderQuestion();
+});
+
+/* ===== QUIZ NAV ===== */
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById('q-counter').textContent = `Pergunta ${current+1} de ${QUESTIONS.length}`;
+  const pct = Math.round((current)/(QUESTIONS.length)*100);
+  document.getElementById('q-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  const qTextEl = document.getElementById('q-text');
+  qTextEl.style.animation='none'; void qTextEl.offsetWidth; qTextEl.style.animation='';
+  qTextEl.textContent = q.text;
+
+  document.querySelectorAll('.scale-opt').forEach(opt=>{
+    opt.classList.toggle('sel', answers[q.id] !== undefined && parseInt(opt.dataset.v) === answers[q.id]);
+  });
+
+  document.getElementById('btn-prev').style.visibility = current===0 ? 'hidden' : 'visible';
+  document.getElementById('btn-next').disabled = answers[q.id] === undefined;
+  document.getElementById('btn-next').textContent = current === QUESTIONS.length-1 ? 'Finalizar teste ✓' : 'Próxima →';
+
+  const hints = ["Escolha a opção que mais combina com você","Responda de forma intuitiva, sem pensar demais","Não existe resposta certa ou errada","Continue no seu ritmo, você está indo bem"];
+  document.getElementById('quiz-hint').textContent = hints[current % hints.length];
+}
+
+document.getElementById('q-scale').addEventListener('click', (e)=>{
+  const opt = e.target.closest('.scale-opt');
+  if(!opt) return;
+  const q = QUESTIONS[current];
+  answers[q.id] = parseInt(opt.dataset.v);
+  document.querySelectorAll('.scale-opt').forEach(o=>o.classList.remove('sel'));
+  opt.classList.add('sel');
+  document.getElementById('btn-next').disabled = false;
+  setTimeout(()=>{
+    if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+    else { finishQuiz(); }
+  }, 280);
+});
+
+document.getElementById('btn-next').addEventListener('click', ()=>{
+  if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+  else { finishQuiz(); }
+});
+document.getElementById('btn-prev').addEventListener('click', ()=>{
+  if(current>0){ current--; renderQuestion(); }
+});
+
+/* ============================================================
+   MOTOR DE PONTUACAO
+============================================================ */
+function computeResults(){
+  const totals = {D:0,I:0,S:0,C:0};
+  const baseQuestions = QUESTIONS.filter(q=>!q.reversed && !q.cross);
+  baseQuestions.forEach(q=> totals[q.ind] += answers[q.id]);
+
+  const reversedQs = QUESTIONS.filter(q=>q.reversed);
+  reversedQs.forEach(q=> totals[q.ind] += (4 - answers[q.id]));
+
+  const total = totals.D + totals.I + totals.S + totals.C;
+  const pct = {
+    D: total? Math.round(totals.D/total*1000)/10 : 0,
+    I: total? Math.round(totals.I/total*1000)/10 : 0,
+    S: total? Math.round(totals.S/total*1000)/10 : 0,
+    C: total? Math.round(totals.C/total*1000)/10 : 0,
+  };
+
+  // ---- consistencia: compara media das questoes-base validadas vs item invertido ----
+  function divergenceFor(q){
+    const forwardAvg = q.validates.reduce((s,id)=>s+answers[id],0) / q.validates.length;
+    const reversedAdj = 4 - answers[q.id];
+    return Math.abs(forwardAvg - reversedAdj) / 4 * 100;
+  }
+  const divD = divergenceFor(QUESTIONS.find(q=>q.id===31));
+  const divI = divergenceFor(QUESTIONS.find(q=>q.id===32));
+  const divS = divergenceFor(QUESTIONS.find(q=>q.id===33));
+  const divC = divergenceFor(QUESTIONS.find(q=>q.id===34));
+
+  // ---- consistencia cruzada (questoes 35 D/C e 36 I/S) ----
+  // q35: alta pontuacao = perfil analitico (baixa impulsividade). Esperado conforme equilibrio D vs C.
+  const dcBalance = (totals.D + totals.C) ? totals.D / (totals.D + totals.C) : .5; // 0=C puro, 1=D puro
+  const expected35 = (1 - dcBalance) * 4;
+  const divDC = Math.abs(answers[35] - expected35) / 4 * 100;
+
+  // q36: alta pontuacao = prefere ouvir (S-leaning). Esperado conforme equilibrio I vs S.
+  const isBalance = (totals.I + totals.S) ? totals.I / (totals.I + totals.S) : .5; // 0=S puro, 1=I puro
+  const expected36 = (1 - isBalance) * 4;
+  const divIS = Math.abs(answers[36] - expected36) / 4 * 100;
+
+  const avgDivergence = (divD+divI+divS+divC+divDC+divIS) / 6;
+  const consistency = Math.round((100 - avgDivergence)*10)/10;
+
+  let consistencyMsg = "";
+  let consistencyLevel = "media";
+  if(avgDivergence > 60){
+    consistencyMsg = "Resultado obtido com baixa consistência comportamental. Recomenda-se entrevista complementar para validação do perfil.";
+    consistencyLevel = "baixa";
+  } else if(consistency > 80){
+    consistencyMsg = "Resultado obtido com alta consistência comportamental, indicando boa confiabilidade das respostas.";
+    consistencyLevel = "alta";
+  } else {
+    consistencyMsg = "Resultado obtido com consistência comportamental moderada.";
+    consistencyLevel = "media";
+  }
+
+  // ---- perfil primario / secundario / combinado ----
+  const ranked = Object.entries(pct).sort((a,b)=>b[1]-a[1]);
+  const primary = ranked[0][0];
+  const secondary = ranked[1][0];
+  const comboKey = [primary,secondary].sort().join(',');
+  const comboName = COMBOS[comboKey] || `${PROFILES[primary].apelido} + ${PROFILES[secondary].apelido}`;
+
+  return {totals, pct, consistency, consistencyMsg, consistencyLevel, primary, secondary, comboName,
+           divergences:{D:divD,I:divI,S:divS,C:divC,DC:divDC,IS:divIS}};
+}
+
+/* ============================================================
+   GERACAO DE PDF (jsPDF) - relatorio interno, candidato nao ve
+============================================================ */
+function buildPDF(result){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt', format:'a4'});
+  const W = doc.internal.pageSize.getWidth();
+  let y = 56;
+
+  // Header
+  doc.setFillColor(10,30,60);
+  doc.rect(0,0,W,84,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold'); doc.setFontSize(17);
+  doc.text('Relatório de Perfil Comportamental DISC', 40, 38);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text('Fradema Consultores Tributários · Recursos Humanos', 40, 58);
+  y = 112;
+
+  doc.setTextColor(20,20,20);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text('Dados do candidato', 40, y); y+=18;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text(`Nome: ${candidate.nome}`, 40, y); y+=15;
+  doc.text(`CPF: ${candidate.cpf}`, 40, y); y+=15;
+  doc.text(`Data de nascimento: ${formatDateBR(candidate.nascimento)}`, 40, y); y+=15;
+  doc.text(`Data do teste: ${formatDateBR(new Date().toISOString().slice(0,10))} às ${new Date().toLocaleTimeString('pt-BR')}`, 40, y); y+=26;
+
+  // Percentuais (tabela simples)
+  doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text('Resultado por fator', 40, y); y+=10;
+  y+=12;
+  const order = ['D','I','S','C'];
+  const colors = {D:[185,28,28], I:[202,138,4], S:[5,150,105], C:[29,78,216]};
+  order.forEach(k=>{
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(20,20,20);
+    doc.text(`${k} — ${PROFILES[k].nome} (${PROFILES[k].apelido})`, 40, y);
+    doc.text(`${result.pct[k]}%`, W-80, y);
+    y+=8;
+    doc.setDrawColor(225,225,225); doc.setFillColor(238,242,248);
+    doc.roundedRect(40, y, W-80, 8, 4, 4, 'F');
+    doc.setFillColor(colors[k][0],colors[k][1],colors[k][2]);
+    const barW = Math.max(6,(W-80) * (result.pct[k]/100));
+    doc.roundedRect(40, y, barW, 8, 4, 4, 'F');
+    y+=22;
+  });
+  y+=8;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(20,20,20);
+  doc.text(`Perfil predominante: ${PROFILES[result.primary].apelido} (${result.primary})`, 40, y); y+=18;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text(`Perfil secundário: ${PROFILES[result.secondary].apelido} (${result.secondary})`, 40, y); y+=16;
+  doc.text(`Estilo comportamental combinado: ${result.comboName}`, 40, y); y+=26;
+
+  function profileBlock(key, label){
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(20,20,20);
+    doc.text(`${label}: ${PROFILES[key].nome} (${PROFILES[key].apelido}) — ${result.pct[key]}%`, 40, y); y+=16;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
+    doc.text('Características:', 40, y); y+=13;
+    doc.setFont('helvetica','normal');
+    doc.text(PROFILES[key].caracteristicas.join(' · '), 40, y, {maxWidth:W-80}); y+=28;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
+    doc.text('Pontos de atenção:', 40, y); y+=13;
+    doc.setFont('helvetica','normal');
+    doc.text(PROFILES[key].atencao.join(' · '), 40, y, {maxWidth:W-80}); y+=26;
+  }
+  profileBlock(result.primary, 'Perfil Primário');
+  profileBlock(result.secondary, 'Perfil Secundário');
+
+  // Consistencia
+  if(y > 680){ doc.addPage(); y = 50; }
+  doc.setFillColor(result.consistencyLevel==='baixa' ? 254:235, result.consistencyLevel==='baixa'?242:248, result.consistencyLevel==='baixa'?242:240);
+  doc.roundedRect(40,y,W-80,46,8,8,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(20,20,20);
+  doc.text(`Consistência comportamental: ${result.consistency}%`, 50, y+18);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.8);
+  doc.text(result.consistencyMsg, 50, y+34, {maxWidth:W-100});
+  y += 64;
+
+  // Respostas (apendice compacto)
+  if(y > 650){ doc.addPage(); y = 50; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(20,20,20);
+  doc.text('Apêndice — respostas registradas', 40, y); y+=16;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.3); doc.setTextColor(70,70,70);
+  let line = '';
+  QUESTIONS.forEach((q,i)=>{
+    line += `Q${q.id}:${SCALE_LABELS[answers[q.id]]}  `;
+    if((i+1)%6===0){ doc.text(line, 40, y); y+=11; line=''; if(y>770){doc.addPage(); y=50;} }
+  });
+  if(line) doc.text(line, 40, y);
+
+  return doc.output('datauristring').split(',')[1]; // base64
+}
+
+function formatDateBR(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+/* ============================================================
+   ENVIO FINAL
+============================================================ */
+// >>> SUBSTITUIR pela URL do Web App do Apps Script apos o deploy <<<
+const APPS_SCRIPT_URL = "COLE_AQUI_A_URL_DO_WEB_APP";
+
+function finishQuiz(){
+  showScreen('sending');
+  setTimeout(async ()=>{
+    const result = computeResults();
+    const pdfBase64 = buildPDF(result);
+    const payload = {
+      nome: candidate.nome,
+      cpf: candidate.cpf,
+      nascimento: candidate.nascimento,
+      dataTeste: new Date().toISOString(),
+      pdfBase64,
+      fileName: `DISC_${candidate.nome.replace(/\s+/g,'_')}.pdf`,
+    };
+    try{
+      if(APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('http')===0){
+        await fetch(APPS_SCRIPT_URL, {
+          method:'POST',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify(payload),
+        });
+      } else {
+        console.warn('APPS_SCRIPT_URL nao configurada ainda — relatorio nao enviado por email.');
+      }
+    } catch(err){
+      console.error('Falha ao enviar relatorio:', err);
+    }
+    showScreen('thanks');
+  }, 900);
+}
+</script>
+</body>
+</html>
